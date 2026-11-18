@@ -1,0 +1,18 @@
+# Dependências e prévias usadas para gerar os slides
+.slide_tools/
+.slide_preview/
+.gerar_apresentacao.py
+.render_slides.ps1
+Slide*.PNG
+
+# Arquivos locais e credenciais
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.log
+__pycache__/
+.vscode/
+.idea/
+.publish_github.py

@@ -1,0 +1,2011 @@
+{
+  "info": {
+    "_postman_id": "fb0e2cf5-c6db-45f9-8ea7-79bb8deae106",
+    "name": "LP VIII - Livros - JWT e JSON raw",
+    "description": "Cadastre as contas no navegador e promova a conta admin no MySQL. Configure baseUrl, userEmail, adminEmail e password (as duas contas devem usar essa senha). Execute em ordem. Login POST /api/login.php com Body raw JSON salva os tokens automaticamente. Requisições protegidas usam Authorization Bearer, sem depender de cookies. A busca Open Library precisa de internet. O livro manual criado nesta execução é excluído pelo admin. Tokens duram 1 hora; logout da interface não revoga JWT.\n\nTodas as requisições têm exemplos salvos de resposta e instruções em Description. Expanda a seta ao lado da requisição para ver os exemplos ilustrativos. Para excluir, informe o ID em Params > id e use um JWT de admin; o DELETE não tem body e retorna 204 vazio. Consulte postman/EXEMPLOS.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 - Open Library pública (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('A Open Library respondeu 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('A resposta contém docs', function () {",
+              "    pm.expect(pm.response.json()).to.have.property('docs');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "User-Agent",
+            "value": "{{openLibraryUserAgent}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://openlibrary.org/search.json?q=dom%20casmurro&fields=key,title,author_name,first_publish_year,isbn,cover_i&limit=1",
+          "protocol": "https",
+          "host": [
+            "openlibrary",
+            "org"
+          ],
+          "path": [
+            "search.json"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "dom casmurro"
+            },
+            {
+              "key": "fields",
+              "value": "key,title,author_name,first_publish_year,isbn,cover_i"
+            },
+            {
+              "key": "limit",
+              "value": "1"
+            }
+          ]
+        },
+        "description": "Consulta pública da Open Library. Não precisa de JWT. Requer internet.\n\n**Requisição:** `GET https://openlibrary.org/search.json?q=dom%20casmurro&fields=key,title,author_name,first_publish_year,isbn,cover_i&limit=1`\n\n**Body:** none (sem corpo).\n\n**Authorization:** No Auth.\n\n**Respostas de exemplo:** 200. Expanda a requisição na lista para abri-las.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "User-Agent",
+                "value": "TrabalhoOpenLibraryUNIFEG/1.0 (contato: seu-email@exemplo.com)",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "https://openlibrary.org/search.json?q=dom%20casmurro&fields=key,title,author_name,first_publish_year,isbn,cover_i&limit=1",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"docs\": [\n    {\n      \"key\": \"/works/OL_EXEMPLO\",\n      \"title\": \"Dom Casmurro\",\n      \"author_name\": [\n        \"Machado de Assis\"\n      ],\n      \"first_publish_year\": 1899\n    }\n  ]\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "01 - Sem login: GET protegido (401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "['token', 'userToken', 'adminToken', 'bookId'].forEach(key => pm.collectionVariables.set(key, ''));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "Teste de proteção: envie sem Authorization e sem cookies. O retorno esperado é 401. Essa requisição limpa as variáveis para iniciar uma nova execução.\n\n**Requisição:** `GET {{baseUrl}}/api/books.php`\n\n**Body:** none (sem corpo).\n\n**Authorization:** No Auth.\n\n**Respostas de exemplo:** 401. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "401 Unauthorized — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"Faça login para continuar.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "02 - Login JWT usuário comum (200)",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('userToken', '');",
+              "pm.collectionVariables.set('token', '');",
+              "pm.collectionVariables.set('userJwtPayload', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login JWT retorna 200', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) {",
+              "    const data = pm.response.json();",
+              "    pm.test('Resposta contém Bearer com validade de uma hora', () => {",
+              "        pm.expect(data.token_type).to.eql('Bearer');",
+              "        pm.expect(data.expires_in).to.eql(3600);",
+              "        pm.expect(data.access_token).to.be.a('string');",
+              "        pm.expect(data.access_token.split('.')).to.have.lengthOf(3);",
+              "    });",
+              "    pm.test('Perfil esperado: usuario', () => pm.expect(data.usuario.perfil).to.eql('usuario'));",
+              "    pm.collectionVariables.set('userToken', data.access_token);",
+              "    pm.collectionVariables.set('token', data.access_token);",
+              "}",
+              "pm.collectionVariables.set('userJwtPayload', '');",
+              "if (pm.response.code === 200) {",
+              "    const data = pm.response.json();",
+              "    const segment = data.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');",
+              "    const payload = JSON.parse(require('buffer').Buffer.from(segment, 'base64').toString('utf8'));",
+              "    pm.test('JWT contém os dados públicos e as permissões do usuário', () => {",
+              "        pm.expect(payload.sub).to.eql(String(data.usuario.id));",
+              "        pm.expect(payload.nome).to.eql(data.usuario.nome);",
+              "        pm.expect(payload.email).to.eql(data.usuario.email);",
+              "        pm.expect(payload.perfil).to.eql(data.usuario.perfil);",
+              "        pm.expect(payload.permissoes).to.eql(data.usuario.permissoes);",
+              "        pm.expect(payload).not.to.have.property('senha');",
+              "        pm.expect(payload).not.to.have.property('senha_hash');",
+              "    });",
+              "    pm.test('Permissões correspondem ao perfil esperado', () => {",
+              "        pm.expect(payload.perfil).to.eql('usuario');",
+              "        pm.expect(payload.permissoes).to.eql([\"livros:ler\", \"livros:criar\", \"livros:editar\"]);",
+              "    });",
+              "    pm.collectionVariables.set('userJwtPayload', JSON.stringify(payload, null, 2));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"senha\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/login.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "login.php"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "Configure userEmail e password com uma conta de perfil usuario. Selecione Body > raw > JSON. O login salva userToken, token e userJwtPayload automaticamente.\n\n**Requisição:** `POST {{baseUrl}}/api/login.php`\n\n**Body > raw > JSON:**\n```json\n{\n  \"email\": \"{{userEmail}}\",\n  \"senha\": \"{{password}}\"\n}\n```\n\n**Authorization:** No Auth.\n\n**Respostas de exemplo:** 200. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "200 OK — exemplo ilustrativo (usuario)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@exemplo.com\",\n  \"senha\": \"senha-cadastrada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost/open-library-trabalho/api/login.php",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"access_token\": \"<JWT ilustrativo: execute o login para obter um token válido>\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600,\n  \"usuario\": {\n    \"id\": 2,\n    \"nome\": \"Usuário de exemplo\",\n    \"email\": \"usuario@exemplo.com\",\n    \"perfil\": \"usuario\",\n    \"permissoes\": [\n      \"livros:ler\",\n      \"livros:criar\",\n      \"livros:editar\"\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "03 - Buscar na Open Library e salvar (201 ou 200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201 or 200', () => pm.expect([200,201]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Frankenstein Mary Shelley\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Envie query em Body > raw > JSON. O servidor pesquisa na Open Library e salva o resultado. Retorna 201 se criou ou 200 se o livro já existia. Requer userToken e internet.\n\n**Requisição:** `POST {{baseUrl}}/api/books.php`\n\n**Body > raw > JSON:**\n```json\n{\n  \"query\": \"Frankenstein Mary Shelley\"\n}\n```\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 201, 200. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "201 Created — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Frankenstein Mary Shelley\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost/open-library-trabalho/api/books.php",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Livro adicionado.\",\n  \"data\": {\n    \"id\": 123,\n    \"open_library_key\": \"local:exemplo\",\n    \"title\": \"Frankenstein\",\n    \"authors\": \"Mary Shelley\",\n    \"first_publish_year\": 1818,\n    \"isbn\": \"1234567890\",\n    \"cover_id\": null,\n    \"cover_url\": null,\n    \"search_term\": \"Frankenstein Mary Shelley\",\n    \"created_at\": \"2026-11-17 10:00:00\",\n    \"updated_at\": \"2026-11-17 10:00:00\"\n  }\n}"
+        },
+        {
+          "name": "200 OK — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Frankenstein Mary Shelley\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost/open-library-trabalho/api/books.php",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Livro atualizado.\",\n  \"data\": {\n    \"id\": 123,\n    \"open_library_key\": \"local:exemplo\",\n    \"title\": \"Frankenstein\",\n    \"authors\": \"Mary Shelley\",\n    \"first_publish_year\": 1818,\n    \"isbn\": \"1234567890\",\n    \"cover_id\": null,\n    \"cover_url\": null,\n    \"search_term\": \"Frankenstein Mary Shelley\",\n    \"created_at\": \"2026-11-17 10:00:00\",\n    \"updated_at\": \"2026-11-17 10:00:00\"\n  }\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "04 - Listar livros (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Envie GET com userToken. Na resposta, copie data[n].id do livro desejado para a variável bookId da coleção. Esse número será usado em consultar, editar e excluir.\n\n**Requisição:** `GET {{baseUrl}}/api/books.php`\n\n**Body:** none (sem corpo).\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 200. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "200 OK — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 123,\n      \"open_library_key\": \"local:exemplo\",\n      \"title\": \"Livro de teste Postman\",\n      \"authors\": \"Grupo 6\",\n      \"first_publish_year\": 2020,\n      \"isbn\": \"1234567890\",\n      \"cover_id\": null,\n      \"cover_url\": null,\n      \"search_term\": \"cadastro manual\",\n      \"created_at\": \"2026-11-17 10:00:00\",\n      \"updated_at\": \"2026-11-17 10:00:00\"\n    }\n  ]\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "05 - Cadastrar livro manual (201)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('bookId', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) { pm.collectionVariables.set('bookId', pm.response.json().data.id); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Livro de teste Postman\",\n  \"authors\": \"Grupo 6\",\n  \"first_publish_year\": 2020,\n  \"isbn\": \"1234567890\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Preencha title, authors, first_publish_year e isbn em Body > raw > JSON. O retorno 201 contém data.id. O teste salva esse número em bookId para as próximas chamadas.\n\n**Requisição:** `POST {{baseUrl}}/api/books.php`\n\n**Body > raw > JSON:**\n```json\n{\n  \"title\": \"Livro de teste Postman\",\n  \"authors\": \"Grupo 6\",\n  \"first_publish_year\": 2020,\n  \"isbn\": \"1234567890\"\n}\n```\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 201. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "201 Created — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Livro de teste Postman\",\n  \"authors\": \"Grupo 6\",\n  \"first_publish_year\": 2020,\n  \"isbn\": \"1234567890\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost/open-library-trabalho/api/books.php",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Livro cadastrado.\",\n  \"data\": {\n    \"id\": 123,\n    \"open_library_key\": \"local:exemplo\",\n    \"title\": \"Livro de teste Postman\",\n    \"authors\": \"Grupo 6\",\n    \"first_publish_year\": 2020,\n    \"isbn\": \"1234567890\",\n    \"cover_id\": null,\n    \"cover_url\": null,\n    \"search_term\": \"cadastro manual\",\n    \"created_at\": \"2026-11-17 10:00:00\",\n    \"updated_at\": \"2026-11-17 10:00:00\"\n  }\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "06 - Buscar livro por ID (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php?id={{bookId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{bookId}}",
+              "description": "ID do livro retornado pelo GET ou pelo cadastro. Exemplo ilustrativo: 123."
+            }
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Em Params, id usa {{bookId}}. Execute o cadastro antes ou preencha bookId com o id de um livro retornado pela listagem. Exemplo ilustrativo: id=123. Não usa body.\n\n**Requisição:** `GET {{baseUrl}}/api/books.php?id={{bookId}}`\n\n**Body:** none (sem corpo).\n\n**URL ilustrativa:** `http://localhost/open-library-trabalho/api/books.php?id=123`. Substitua 123 pelo ID real; não execute esse ID apenas por estar no exemplo.\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 200. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "200 OK — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php?id=123",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 123,\n    \"open_library_key\": \"local:exemplo\",\n    \"title\": \"Livro de teste Postman\",\n    \"authors\": \"Grupo 6\",\n    \"first_publish_year\": 2020,\n    \"isbn\": \"1234567890\",\n    \"cover_id\": null,\n    \"cover_url\": null,\n    \"search_term\": \"cadastro manual\",\n    \"created_at\": \"2026-11-17 10:00:00\",\n    \"updated_at\": \"2026-11-17 10:00:00\"\n  }\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "07 - Atualizar livro (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Livro de teste editado\",\n  \"authors\": \"Grupo 6\",\n  \"first_publish_year\": 2021,\n  \"isbn\": \"1234567890\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php?id={{bookId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{bookId}}",
+              "description": "ID do livro retornado pelo GET ou pelo cadastro. Exemplo ilustrativo: 123."
+            }
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Em Params, informe o id do livro. Em Body > raw > JSON, preencha os novos dados. Exemplo: id=123, title=\"Livro de teste editado\". Requer userToken.\n\n**Requisição:** `PUT {{baseUrl}}/api/books.php?id={{bookId}}`\n\n**Body > raw > JSON:**\n```json\n{\n  \"title\": \"Livro de teste editado\",\n  \"authors\": \"Grupo 6\",\n  \"first_publish_year\": 2021,\n  \"isbn\": \"1234567890\"\n}\n```\n\n**URL ilustrativa:** `http://localhost/open-library-trabalho/api/books.php?id=123`. Substitua 123 pelo ID real; não execute esse ID apenas por estar no exemplo.\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 200. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "200 OK — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Livro de teste editado\",\n  \"authors\": \"Grupo 6\",\n  \"first_publish_year\": 2021,\n  \"isbn\": \"1234567890\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost/open-library-trabalho/api/books.php?id=123",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Livro atualizado.\",\n  \"data\": {\n    \"id\": 123,\n    \"open_library_key\": \"local:exemplo\",\n    \"title\": \"Livro de teste editado\",\n    \"authors\": \"Grupo 6\",\n    \"first_publish_year\": 2021,\n    \"isbn\": \"1234567890\",\n    \"cover_id\": null,\n    \"cover_url\": null,\n    \"search_term\": \"cadastro manual\",\n    \"created_at\": \"2026-11-17 10:00:00\",\n    \"updated_at\": \"2026-11-17 10:00:00\"\n  }\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "08 - PUT com dados inválidos (422)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 422', () => pm.response.to.have.status(422));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"\",\n  \"authors\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php?id={{bookId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{bookId}}",
+              "description": "ID do livro retornado pelo GET ou pelo cadastro. Exemplo ilustrativo: 123."
+            }
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Exemplo intencional de erro: title e authors vazios. Use um bookId válido e userToken. Retorna 422 com os campos inválidos.\n\n**Requisição:** `PUT {{baseUrl}}/api/books.php?id={{bookId}}`\n\n**Body > raw > JSON:**\n```json\n{\n  \"title\": \"\",\n  \"authors\": \"\"\n}\n```\n\n**URL ilustrativa:** `http://localhost/open-library-trabalho/api/books.php?id=123`. Substitua 123 pelo ID real; não execute esse ID apenas por estar no exemplo.\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 422. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "422 Unprocessable Entity — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\",\n  \"authors\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost/open-library-trabalho/api/books.php?id=123",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Unprocessable Entity",
+          "code": 422,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"errors\": [\n    \"Título deve ter de 1 a 255 caracteres.\",\n    \"Autor deve ter de 1 a 500 caracteres.\"\n  ],\n  \"error\": \"Título deve ter de 1 a 255 caracteres. Autor deve ter de 1 a 500 caracteres.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "09 - PUT com ID inexistente (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Valid\",\n  \"authors\": \"Author\",\n  \"first_publish_year\": 2020,\n  \"isbn\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php?id=999999999",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "999999999",
+              "description": "ID do livro retornado pelo GET ou pelo cadastro. Exemplo ilustrativo: 123."
+            }
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Exemplo intencional de erro: atualiza id=999999999, assumindo que não exista. O body contém dados válidos. Retorna 404.\n\n**Requisição:** `PUT {{baseUrl}}/api/books.php?id=999999999`\n\n**Body > raw > JSON:**\n```json\n{\n  \"title\": \"Valid\",\n  \"authors\": \"Author\",\n  \"first_publish_year\": 2020,\n  \"isbn\": \"\"\n}\n```\n\n**URL ilustrativa:** `http://localhost/open-library-trabalho/api/books.php?id=999999999`. Substitua 123 pelo ID real; não execute esse ID apenas por estar no exemplo.\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 404. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "404 Not Found — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Valid\",\n  \"authors\": \"Author\",\n  \"first_publish_year\": 2020,\n  \"isbn\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost/open-library-trabalho/api/books.php?id=999999999",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"Livro não encontrado.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "10 - Validação incorreta (422)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 422', () => pm.response.to.have.status(422));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"\",\n  \"authors\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Exemplo intencional de erro de cadastro: title e authors vazios. O servidor retorna 422 sem cadastrar um livro.\n\n**Requisição:** `POST {{baseUrl}}/api/books.php`\n\n**Body > raw > JSON:**\n```json\n{\n  \"title\": \"\",\n  \"authors\": \"\"\n}\n```\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 422. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "422 Unprocessable Entity — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\",\n  \"authors\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost/open-library-trabalho/api/books.php",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Unprocessable Entity",
+          "code": 422,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"errors\": [\n    \"Título deve ter de 1 a 255 caracteres.\",\n    \"Autor deve ter de 1 a 500 caracteres.\"\n  ],\n  \"error\": \"Título deve ter de 1 a 255 caracteres. Autor deve ter de 1 a 500 caracteres.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "11 - JSON malformado (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{invalid json",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Exemplo intencional de erro: o body raw não é um JSON válido. Não corrija esse body se quiser demonstrar o retorno 400.\n\n**Requisição:** `POST {{baseUrl}}/api/books.php`\n\n**Body > raw > JSON:**\n```json\n{invalid json\n```\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 400. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "400 Bad Request — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{invalid json",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost/open-library-trabalho/api/books.php",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"O corpo da requisição não contém um JSON válido.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "12 - ID inexistente (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php?id=999999999",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "999999999",
+              "description": "ID do livro retornado pelo GET ou pelo cadastro. Exemplo ilustrativo: 123."
+            }
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Consulta um ID de exemplo inexistente: 999999999. Retorna 404 se não houver um livro com esse ID. Não usa body.\n\n**Requisição:** `GET {{baseUrl}}/api/books.php?id=999999999`\n\n**Body:** none (sem corpo).\n\n**URL ilustrativa:** `http://localhost/open-library-trabalho/api/books.php?id=999999999`. Substitua 123 pelo ID real; não execute esse ID apenas por estar no exemplo.\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 404. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "404 Not Found — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php?id=999999999",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"Livro não encontrado.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "13 - Usuário comum não pode excluir (403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php?id={{bookId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{bookId}}",
+              "description": "ID do livro retornado pelo GET ou pelo cadastro. Exemplo ilustrativo: 123."
+            }
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Demonstração de permissão: esta chamada usa userToken, portanto o usuário comum recebe 403 e o livro NÃO é excluído. Para realmente excluir, use a requisição 17 com adminToken.\n\n**Requisição:** `DELETE {{baseUrl}}/api/books.php?id={{bookId}}`\n\n**Body:** none (sem corpo).\n\n**URL ilustrativa:** `http://localhost/open-library-trabalho/api/books.php?id=123`. Substitua 123 pelo ID real; não execute esse ID apenas por estar no exemplo.\n\n**Authorization > Bearer Token:** `{{userToken}}`.\n\n**Respostas de exemplo:** 403. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "403 Forbidden — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php?id=123",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"Você não tem permissão para esta ação.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "14 - JWT inválido (401)",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('JWT inválido retorna 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "jwt-invalido",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ]
+        },
+        "description": "Demonstração de JWT inválido: Authorization contém Bearer jwt-invalido. A API retorna 401 e não acessa os livros.\n\n**Requisição:** `GET {{baseUrl}}/api/books.php`\n\n**Body:** none (sem corpo).\n\n**Authorization > Bearer Token:** `jwt-invalido`.\n\n**Respostas de exemplo:** 401. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "401 Unauthorized — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "jwt-invalido",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "http://localhost/open-library-trabalho/api/books.php"
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"Token inválido ou expirado.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "15 - Requisição sem JWT (401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "Demonstração sem autenticação: Authorization está como No Auth e cookies estão desativados. A resposta esperada é 401.\n\n**Requisição:** `GET {{baseUrl}}/api/books.php`\n\n**Body:** none (sem corpo).\n\n**Authorization:** No Auth.\n\n**Respostas de exemplo:** 401. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "401 Unauthorized — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"Faça login para continuar.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "16 - Login JWT administrador (200)",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('adminToken', '');",
+              "pm.collectionVariables.set('token', '');",
+              "pm.collectionVariables.set('adminJwtPayload', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login JWT retorna 200', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) {",
+              "    const data = pm.response.json();",
+              "    pm.test('Resposta contém Bearer com validade de uma hora', () => {",
+              "        pm.expect(data.token_type).to.eql('Bearer');",
+              "        pm.expect(data.expires_in).to.eql(3600);",
+              "        pm.expect(data.access_token).to.be.a('string');",
+              "        pm.expect(data.access_token.split('.')).to.have.lengthOf(3);",
+              "    });",
+              "    pm.test('Perfil esperado: admin', () => pm.expect(data.usuario.perfil).to.eql('admin'));",
+              "    pm.collectionVariables.set('adminToken', data.access_token);",
+              "    pm.collectionVariables.set('token', data.access_token);",
+              "}",
+              "pm.collectionVariables.set('adminJwtPayload', '');",
+              "if (pm.response.code === 200) {",
+              "    const data = pm.response.json();",
+              "    const segment = data.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');",
+              "    const payload = JSON.parse(require('buffer').Buffer.from(segment, 'base64').toString('utf8'));",
+              "    pm.test('JWT contém os dados públicos e as permissões do usuário', () => {",
+              "        pm.expect(payload.sub).to.eql(String(data.usuario.id));",
+              "        pm.expect(payload.nome).to.eql(data.usuario.nome);",
+              "        pm.expect(payload.email).to.eql(data.usuario.email);",
+              "        pm.expect(payload.perfil).to.eql(data.usuario.perfil);",
+              "        pm.expect(payload.permissoes).to.eql(data.usuario.permissoes);",
+              "        pm.expect(payload).not.to.have.property('senha');",
+              "        pm.expect(payload).not.to.have.property('senha_hash');",
+              "    });",
+              "    pm.test('Permissões correspondem ao perfil esperado', () => {",
+              "        pm.expect(payload.perfil).to.eql('admin');",
+              "        pm.expect(payload.permissoes).to.eql([\"livros:ler\", \"livros:criar\", \"livros:editar\", \"livros:excluir\"]);",
+              "    });",
+              "    pm.collectionVariables.set('adminJwtPayload', JSON.stringify(payload, null, 2));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"senha\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/login.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "login.php"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "Configure adminEmail e password com uma conta já cadastrada e com perfil admin no banco. Faça login novamente após promover a conta. O teste salva adminToken, token e adminJwtPayload.\n\n**Requisição:** `POST {{baseUrl}}/api/login.php`\n\n**Body > raw > JSON:**\n```json\n{\n  \"email\": \"{{adminEmail}}\",\n  \"senha\": \"{{password}}\"\n}\n```\n\n**Authorization:** No Auth.\n\n**Respostas de exemplo:** 200. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "200 OK — exemplo ilustrativo (admin)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@exemplo.com\",\n  \"senha\": \"senha-cadastrada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://localhost/open-library-trabalho/api/login.php",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"access_token\": \"<JWT ilustrativo: execute o login para obter um token válido>\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600,\n  \"usuario\": {\n    \"id\": 1,\n    \"nome\": \"Administrador\",\n    \"email\": \"admin@exemplo.com\",\n    \"perfil\": \"admin\",\n    \"permissoes\": [\n      \"livros:ler\",\n      \"livros:criar\",\n      \"livros:editar\",\n      \"livros:excluir\"\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "17 - Administrador exclui (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php?id={{bookId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{bookId}}",
+              "description": "ID do livro retornado pelo GET ou pelo cadastro. Exemplo ilustrativo: 123."
+            }
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "EXCLUSÃO REAL: 1. Execute 04 para listar e escolha o id, ou use o bookId salvo por 05. 2. Defina bookId nas variáveis da coleção. 3. Execute 16 para obter adminToken. 4. Nesta chamada DELETE, confira Params > id = {{bookId}}. 5. Clique Send. Não envie body. Sucesso: 204 com corpo vazio. Repetir a exclusão do mesmo ID retorna 404.\n\n**Requisição:** `DELETE {{baseUrl}}/api/books.php?id={{bookId}}`\n\n**Body:** none (sem corpo).\n\n**URL ilustrativa:** `http://localhost/open-library-trabalho/api/books.php?id=123`. Substitua 123 pelo ID real; não execute esse ID apenas por estar no exemplo.\n\n**Authorization > Bearer Token:** `{{adminToken}}`.\n\n**Respostas de exemplo:** 204, 403, 404. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "204 No Content — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php?id=123",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do admin retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "No Content",
+          "code": 204,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": ""
+        },
+        {
+          "name": "403 Forbidden — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php?id=123",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do usuario retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"Você não tem permissão para esta ação.\"\n}"
+        },
+        {
+          "name": "404 Not Found — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php?id=123",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do admin retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"Livro não encontrado.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "18 - DELETE com ID inexistente (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php?id=999999999",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "999999999",
+              "description": "ID do livro retornado pelo GET ou pelo cadastro. Exemplo ilustrativo: 123."
+            }
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Exemplo de exclusão de registro inexistente. Usa adminToken e id=999999999, assumindo que não exista. Retorna 404. Não usa body.\n\n**Requisição:** `DELETE {{baseUrl}}/api/books.php?id=999999999`\n\n**Body:** none (sem corpo).\n\n**URL ilustrativa:** `http://localhost/open-library-trabalho/api/books.php?id=999999999`. Substitua 123 pelo ID real; não execute esse ID apenas por estar no exemplo.\n\n**Authorization > Bearer Token:** `{{adminToken}}`.\n\n**Respostas de exemplo:** 404. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "404 Not Found — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php?id=999999999",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do admin retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"Livro não encontrado.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "19 - Método não permitido (405)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 405', () => pm.response.to.have.status(405));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books.php",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books.php"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "description": "Exemplo intencional de método não permitido: PATCH. A API aceita GET, POST, PUT e DELETE. Use adminToken válido para receber 405.\n\n**Requisição:** `PATCH {{baseUrl}}/api/books.php`\n\n**Body:** none (sem corpo).\n\n**Authorization > Bearer Token:** `{{adminToken}}`.\n\n**Respostas de exemplo:** 405. Expanda a requisição na lista para abri-las."
+      },
+      "response": [
+        {
+          "name": "405 Method Not Allowed — exemplo ilustrativo",
+          "originalRequest": {
+            "method": "PATCH",
+            "header": [],
+            "url": "http://localhost/open-library-trabalho/api/books.php",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "<JWT do admin retornado pelo login>",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "Method Not Allowed",
+          "code": 405,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"error\": \"Método não permitido.\"\n}"
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost/open-library-trabalho"
+    },
+    {
+      "key": "userEmail",
+      "value": "usuario@exemplo.com"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@exemplo.com"
+    },
+    {
+      "key": "password",
+      "value": "defina-no-cadastro"
+    },
+    {
+      "key": "bookId",
+      "value": "",
+      "description": "ID real do livro a consultar, editar ou excluir. Copie de data[n].id na listagem ou deixe o cadastro preencher. Exemplo ilustrativo: 123."
+    },
+    {
+      "key": "openLibraryUserAgent",
+      "value": "TrabalhoOpenLibraryUNIFEG/1.0 (contato: grupo6@example.com)"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "description": "Preenchido automaticamente pelo login correspondente. Não cole o JWT ilustrativo dos exemplos."
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "description": "Preenchido automaticamente pelo login correspondente. Não cole o JWT ilustrativo dos exemplos."
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "description": "Preenchido automaticamente pelo login correspondente. Não cole o JWT ilustrativo dos exemplos."
+    },
+    {
+      "key": "userJwtPayload",
+      "value": ""
+    },
+    {
+      "key": "adminJwtPayload",
+      "value": ""
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  }
+}
